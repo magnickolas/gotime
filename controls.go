@@ -21,7 +21,7 @@ func keybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("projects", gocui.KeyArrowRight, gocui.ModNone, selectItem); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("projects", gocui.KeyCtrlR, gocui.ModNone, deleteItem); err != nil {
+	if err := g.SetKeybinding("projects", gocui.KeyCtrlR, gocui.ModNone, deleteItemWithConfirmation); err != nil {
 		return err
 	}
 	if err := g.SetKeybinding("projects", gocui.KeyCtrlD, gocui.ModNone, addDescription); err != nil {
@@ -39,7 +39,7 @@ func keybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("tasks", gocui.KeyArrowRight, gocui.ModNone, selectItem); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("tasks", gocui.KeyCtrlR, gocui.ModNone, deleteItem); err != nil {
+	if err := g.SetKeybinding("tasks", gocui.KeyCtrlR, gocui.ModNone, deleteItemWithConfirmation); err != nil {
 		return err
 	}
 	if err := g.SetKeybinding("tasks", gocui.KeyArrowLeft, gocui.ModNone, goBack); err != nil {
@@ -60,7 +60,7 @@ func keybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("entries", gocui.KeyCtrlA, gocui.ModNone, newEntry); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("entries", gocui.KeyCtrlR, gocui.ModNone, deleteItem); err != nil {
+	if err := g.SetKeybinding("entries", gocui.KeyCtrlR, gocui.ModNone, deleteItemWithConfirmation); err != nil {
 		return err
 	}
 	if err := g.SetKeybinding("output", gocui.KeyCtrlS, gocui.ModNone, save); err != nil {
