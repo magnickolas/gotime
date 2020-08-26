@@ -104,6 +104,9 @@ func keybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("entries", 'h', gocui.ModNone, goBack); err != nil {
 		return err
 	}
+	if err := g.SetKeybinding("entries", 'l', gocui.ModNone, editEntry); err != nil {
+		return err
+	}
 
 	return nil
 }
