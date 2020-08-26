@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/jroimartin/gocui"
@@ -104,23 +105,25 @@ func copyInput(g *gocui.Gui, iv *gocui.View) error {
 	var ov *gocui.View
 	// If there is text input then add the item,
 	// else go back to the input view.
-	switch iv.Name() {
+	name := iv.Name()
+	text := strings.TrimSpace(iv.Buffer())
+	switch name {
 	case "addProject":
 		ov, _ = g.View(P)
-		if iv.Buffer() != "" {
-			models.AddProject(iv.Buffer())
-		} else {
-			inputView(g, ov)
-			return nil
+		if text != "" {
+			models.AddProject(text)
 		}
 	case "addTask":
 		ov, _ = g.View(T)
-		if iv.Buffer() != "" {
-			models.AddTask(iv.Buffer(), models.CurrentProject)
-		} else {
-			inputView(g, ov)
-			return nil
+		if text != "" {
+			models.AddTask(text, models.CurrentProject)
 		}
+	case "deleteProjectConfirmation":
+		ov, _ = g.View(P)
+	case "deleteTaskConfirmation":
+		ov, _ = g.View(T)
+	case "deleteEntryConfirmation":
+		ov, _ = g.View(E)
 	}
 	// Clear the input view
 	iv.Clear()
@@ -137,11 +140,22 @@ func copyInput(g *gocui.Gui, iv *gocui.View) error {
 	if _, err = g.SetCurrentView(ov.Name()); err != nil {
 		return err
 	}
-	switch ov.Name() {
-	case P:
-		redrawProjects(g, ov)
-	case T:
-		redrawTasks(g, ov)
+	switch name {
+	case "deleteProjectConfirmation", "deleteTaskConfirmation", "deleteEntryConfirmation":
+		if strings.ToLower(text) == "y" {
+			if err = deleteItem(g, ov); err != nil {
+				return err
+			}
+		}
+	default:
+		switch ov.Name() {
+		case P:
+			redrawProjects(g, ov)
+		case T:
+			redrawTasks(g, ov)
+		case E:
+			redrawEntries(g, ov)
+		}
 	}
 	return err
 }
@@ -160,6 +174,39 @@ func inputView(g *gocui.Gui, cv *gocui.View) error {
 		name = "addTask"
 	}
 	if iv, err := g.SetView(name, maxX/2-12, maxY/2, maxX/2+12, maxY/2+2); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		iv.Title = title
+		iv.Editable = true
+		g.Cursor = true
+		if _, err := g.SetCurrentView(name); err != nil {
+			return err
+		}
+		if err := g.SetKeybinding(name, gocui.KeyEnter, gocui.ModNone, copyInput); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Ask a user to confirm if they wants to delete the item and delete if they is
+func deleteItemWithConfirmation(g *gocui.Gui, cv *gocui.View) error {
+	maxX, maxY := g.Size()
+	var title string
+	var name string
+
+	title = "Are you sure you want to delete? [y/n]"
+	switch cv.Name() {
+	case P:
+		name = "deleteProjectConfirmation"
+	case T:
+		name = "deleteTaskConfirmation"
+	case E:
+		name = "deleteEntryConfirmation"
+	}
+
+	if iv, err := g.SetView(name, maxX/2-21, maxY/2, maxX/2+21, maxY/2+2); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
